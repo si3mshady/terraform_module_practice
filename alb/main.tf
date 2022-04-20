@@ -25,18 +25,36 @@ resource "aws_alb_target_group" "app_target_group" {
 
 
   health_check {
-    healthy_threshold   = "2"
-    interval            = "60"
-    protocol            = "HTTP"
-    matcher             = "200"
-    timeout             = "30"
+    healthy_threshold = "2"
+    interval          = "60"
+    protocol          = "HTTP"
+    matcher           = "200"
+    timeout           = "30"
+    # path                = "/api/v1/health"
     path                = "/health"
     unhealthy_threshold = "2"
   }
 }
 
 
-resource "aws_alb_listener" "http" {
+resource "aws_alb_listener_rule" "http" {
+  # load_balancer_arn = aws_lb.alb_ecs.arn
+  listener_arn = aws_alb_listener.application.arn
+  # port              = 80
+  # protocol          = "HTTP"
+
+  action {
+    target_group_arn = aws_alb_target_group.app_target_group.arn
+    type             = "forward"
+  }
+  condition {
+    path_pattern {
+      values = ["/api/v1/health"]
+    }
+  }
+}
+
+resource "aws_alb_listener" "application" {
   load_balancer_arn = aws_lb.alb_ecs.arn
   port              = 80
   protocol          = "HTTP"

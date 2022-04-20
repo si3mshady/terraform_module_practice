@@ -1,9 +1,4 @@
 
-# output "elliott_vpc_public_sg" {
-#   value = module.vpc
-# }
-
-
 output "elliott_vpc_id" {
   value = module.vpc.elliott_vpc_id
 }
@@ -36,4 +31,8 @@ output "alb_arn" {
 
 output "alb_target_group_id" {
   value = module.alb.alb_target_group_id
+}
+
+output "alb_metadata" {
+  value = module.alb.alb_metadata
 }

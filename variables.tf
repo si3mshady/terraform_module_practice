@@ -5,7 +5,7 @@ variable "vpc_cidr" {
 }
 variable "aws_region" {
   type    = string
-  default = "us-east-1"
+  default = "us-east-2"
 }
 
 variable "my_ip" {

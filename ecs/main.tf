@@ -18,8 +18,8 @@ resource "aws_ecs_cluster_capacity_providers" "ecs_capacity_provider" {
 resource "aws_ecs_task_definition" "ecs_task_def" {
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
-  cpu                      = 512
-  memory                   = 1024
+  cpu                      = 1024
+  memory                   = 2048
   family                   = "blockchain"
   execution_role_arn       = aws_iam_role.ecs_task_role.arn
   task_role_arn            = aws_iam_role.ecs_task_role.arn
@@ -33,11 +33,28 @@ resource "aws_ecs_task_definition" "ecs_task_def" {
       essential = true
       portMappings = [
         {
+          containerPort = 3000
+          hostPort      = 3000
+        }
+      ]
+    },
+    {
+      name = "health_check"
+      # image = "si3mshady/blockchaindev:latest"
+      image     = "si3mshady/healthcheck:latest"
+      cpu       = 512
+      memory    = 1024
+      essential = true
+      portMappings = [
+        {
           containerPort = 80
           hostPort      = 80
         }
       ]
     }
+
+
+
   ])
 
 }
@@ -45,30 +62,26 @@ resource "aws_ecs_task_definition" "ecs_task_def" {
 #ECS Service
 resource "aws_ecs_service" "service_handler" {
   depends_on      = [var.aws_lb_id]
-  name            = "blockchain"
+  name            = "health_check"
   cluster         = aws_ecs_cluster.ecs_blockchain_cluster.id
   task_definition = aws_ecs_task_definition.ecs_task_def.arn
   desired_count   = 2
   launch_type     = "FARGATE"
   # iam_role        = aws_iam_role.ecs_kratos_role.arn
-  #
+
   network_configuration {
     security_groups  = [var.alb_public_sg.id]
     subnets          = [for subnet in var.alb_public_subnets : subnet.id]
     assign_public_ip = true
   }
-  #
+
   load_balancer {
     target_group_arn = var.target_group
-    container_name   = "blockchain"
+    container_name   = "health_check"
     container_port   = 80
   }
-
-  # placement_constraints {
-  #   type       = "memberOf"
-  #   expression = "attribute:ecs.availability-zone in [us-west-2a, us-west-2b]"
-  # }
 }
+
 
 
 #IAM ROLE + POLICY
